@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Page</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #e9ecef;
+      }
+      .container {
+        display: flex;
+        align-items: flex-start; /* Aligns sidebar and content at the top */
+      }
+      .sidebar {
+        height: 100%; /* Full-height: remove this if you want "auto" height */
+        width: 160px; /* Set the width of the sidebar */
+        position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+        z-index: 1; /* Stay on top */
+        top: 0; /* Stay at the top */
+        left: 0;
+        background-color: #e9e7e7; /* Black */
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 10px;
+        border-right: 1px solid #ddd;
+        /* margin-bottom: 20px; */
+      }
+
+      .content {
+        margin-left: 150px; /* Adds space to the left of content to accommodate the sidebar */
+        padding: 20px; /* Adds padding around the content */
+        flex-grow: 1; /* Allows content area to grow and fill remaining space */
+        box-sizing: border-box; /* Ensures padding is included in width calculation */
+      }
+      .sidebar button {
+        margin-right: 10px;
+        padding: 10px 15px;
+        border: #007bff;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        flex-direction: column;
+      }
+      .sidebar button:hover {
+        background-color: #0056b3;
+      }
+      .app-list {
+        margin-left: 160px; /* Same as the width of the sidebar */
+        padding: 0px 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      .app-card {
+        margin-left: 160px;
+        padding: 25px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .app-card h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+      .app-card a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .app-card a:hover {
+        text-decoration: underline;
+      }
+      .app-details {
+        margin-left: 160px;
+        display: none;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+      }
+      .upload-screenshot {
+        width: 100%;
+        min-height: 100vh;
+        background: linear-gradient(#ddd, #fff);
+        display: flex;
+        align-content: center;
+        justify-content: center;
+      }
+
+      #drop-area {
+        width: 500px;
+        height: 300px;
+        padding: 30px;
+        background: #ffff;
+        text-align: center;
+        border-radius: 20px;
+      }
+      #img-view {
+        width: 100%;
+        height: 100%;
+        border-radius: 20px;
+        border: 2 px;
+      }
+      #img-view span {
+        display: block;
+        font-size: 12px;
+        color: #777;
+        margin-top: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="content">
+      
+      <h2>You're logged in, welcome to the Home page</h2>
+      <h3>Available Apps</h3>
+    </div>
+
+    <div class="container">
+      <div class="sidebar">
+        <h1><i>Rewardify</i></h1>
+        <button>Home</button>
+        <button>
+          <a href="profile/" id="profile">Profile</a>
+          <!-- <a href="profile/<int:user_id>/" id="profile">Profile</a> -->
+        </button>
+        <!-- <a href="main_page/profile/" id="profile">Profile</a> -->
+
+        <button>
+          <a href="points/" id="points">Points Earned</a>
+        </button>
+        <button><a href="tasks_completed/" id="tasks_completed">Tasks Completed</button>
+        <button><a href="logout/" id="logout">Logout</a></button>
+      </div>
+    </div>
+    
+    <div id="app-list" class="app-list">
+      
+      {% for app in apps %}
+      
+      <div class="app-card">
+        <h3>{{app.app_name}}</h3>
+        <h3>Points: {{app.points}}</h3>
+        <!-- <p>user ID: {{ user_id }}</p>
+        <p>app ID: {{ app.id }}</p> -->
+
+        <a
+          href="#"
+          data-app-id="{{ app.id }}"
+          data-user-id="{{ user_id }}"
+          class="view-detail-link"
+        >
+          View in detail
+        </a>
+
+        >
+      </div>
+      {%empty%}
+      <p>No apps available</p>
+      {% endfor %}
+    </div>
+    <div id="app-details" class="app-details">
+      <h3 id="app-name"></h3>
+      <p>{{app.app_name}}</p>
+      <p>Points: {{app.points}}</p>
+      <p>
+        Download the app here:
+        <a id="app-download-link" href="" target="_blank"></a>
+      </p>
+
+      <button type="submit" id="upload-button">
+        <i>Upload selected Screenshot</i>
+      </button>
+
+      <div class="upload-screenshot">
+        <label for="input-file" id="drop-area">
+          <input type="file" accept="image/*" id="input-file" hidden />
+          <div id="img-view">
+            <p>Drag and drop OR click here to upload image</p>
+            <span>upload any images from desktop</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function viewInDetail(appId, userId) {
+          //fetching app details using ajax
+          let selectedFile = null;
+
+          console.log("hey 2");
+
+          fetch(`/view_in_detail/${appId}/${userId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              // Hide the app list
+              const appList = document.getElementById("app-list");
+              if (appList) {
+                console.log("hey3");
+                console.log('in view-in-det',userId);
+
+
+                document.getElementById("app-list").style.display = "none";
+                // appList.style.display = "none";
+              }
+
+              // Update the app details section
+              const appName = document.getElementById("app-name");
+              const downloadLink = document.getElementById("app-download-link");
+              const appDetails = document.getElementById("app-details");
+
+              const drop_area = document.getElementById("drop-area");
+              const input_file = document.getElementById("input-file");
+              const img_view = document.getElementById("img-view");
+              const upload_button = document.getElementById("upload-button");
+
+              if (appName && downloadLink && appDetails) {
+                console.log("hey4");
+
+                appName.textContent = data.name;
+                downloadLink.href = data.download_link;
+                downloadLink.textContent = data.download_link;
+
+                // show app details
+                document.getElementById("app-details").style.display = "block";
+                document.getElementById("drop-area").style.display = "block";
+
+                //attaching event listeners to drop-area
+                drop_area.addEventListener("dragover", handleDragOver);
+                drop_area.addEventListener("dragleave", handleDragLeave);
+                drop_area.addEventListener("drop", function (event) {
+                  console.log(event.target.file)
+                  handleDrop(event, appId, userId);
+                });
+                img_view.addEventListener("click", () => input_file.click());
+
+                input_file.addEventListener("change", function (event) {
+                  handleFileSelect(event, appId, userId);
+                });
+              }
+              upload_button.addEventListener("click", function () {
+                if (selectedFile) {
+                  handleFileUpload(selectedFile, appId, userId);
+                } else {
+                  alert("No file selected.");
+                }
+              });
+            })
+
+            .catch((error) =>
+              console.error("Error fetching app details:", error)
+            );
+        }
+        // Handle drag over
+        function handleDragOver(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const drop_area = document.getElementById("drop-area");
+          drop_area.classList.add("dragover");
+        }
+        // Handle drag leave
+        function handleDragLeave(event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const drop_area = document.getElementById("drop-area");
+          drop_area.classList.remove("dragover");
+        }
+        // Handle file drop
+        function handleDrop(event, appId, userId) {
+          console.log('inside handledrop', userId)
+          event.preventDefault();
+          event.stopPropagation();
+          const drop_area = document.getElementById("drop-area");
+          drop_area.classList.remove("dragover");
+
+          const files = event.dataTransfer.files;
+          if (files.length) {
+            console.log('inside file-drop function',files[0])
+            console.log(appId)
+            handleFileUpload(files[0], appId, userId);
+          }
+        }
+
+        function handleFileSelect(event, appId, userId) {
+          const file = event.target.files[0];
+          if (file) {
+            selectedFile = file;
+            handleFileUpload(file, appId, userId);
+          }
+        }
+
+        function enableUploadButton() {
+          const upload_button = document.getElementById("upload-button");
+          upload_button.disabled = false;
+        }
+
+        function handleFileUpload(file, appId, userId) {
+          const img_view = document.getElementById("img-view");
+          const imgLink = URL.createObjectURL(file);
+          img_view.style.backgroundImage = `url(${imgLink})`;
+          img_view.textContent = "";
+          img_view.style.border = 0;
+
+          // drop_area.innerHTML = "<p>Upload successful!</p>";
+          // drop_area.style.borderColor = "green";
+
+          const formData = new FormData();
+          formData.append("screenshot", file);
+          console.log(file)
+          formData.append("app_id", appId);
+          console.log("printing formData:", formData)
+
+          console.log("File in FormData:", formData.get("screenshot")); // Should print the file object
+          console.log("App ID in FormData:", formData.get("app_id"));
+
+          formData.append("user_id", userId);
+          console.log(formData.get('user_id'))
+          // console.log(userId);
+
+          function getCSRFToken() {
+            let cookieValue = null;
+            const name = "csrftoken";
+            if (document.cookie && document.cookie !== "") {
+              const cookies = document.cookie.split(";");
+              for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                  cookieValue = decodeURIComponent(
+                    cookie.substring(name.length + 1)
+                  );
+                  break;
+                }
+              }
+            }
+            return cookieValue;
+          }
+
+          const csrfToken = getCSRFToken();
+
+          let fetchpromise=fetch(`upload_screenshot/`,{
+            method: "POST",
+            body: formData,
+            headers: {
+              "X-CSRFToken": csrfToken, // Add the CSRF token here
+            },
+          });
+
+          console.log('fetchpromise',fetchpromise)
+          console.log('inside fetch function:',formData.get('screenshot'))
+
+          fetchpromise 
+          .then((response) =>
+          //  response.json())
+          {
+    // Check if the response is JSON
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                return response.json(); // Parse as JSON
+            } else {
+                return response.text(); // Parse as text (likely HTML error page)
+            }
+        })
+            .then((data) => {
+              if (typeof data === 'object') {
+                // JSON response
+                console.log("Screenshot uploaded successfully:", data);
+            } else {
+                // HTML response (error page)
+                console.error("Unexpected response from server:", data);
+            }
+              // console.log(response)
+              // console.log("Screenshot uploaded successfully:", data);
+            })
+            .catch((error) => {
+              console.error("Error uploading screenshot:", error);
+            });
+        }
+
+        //         if (appList) {
+        //           console.log(appList);
+        //           // document.getElementById("app-list").style.display = "none";
+        //           // appList.style.display = "none";
+        //         }
+
+        //         const uploadForm = document.getElementById("upload-form");
+        //         if (uploadForm) {
+        //           uploadForm.action = `/upload_screenshot/${appId}/`;
+        //         }
+        //       } else {
+        //         console.error("App details section not found in DOM");
+        //       }
+        //     })
+        //     .catch((error) =>
+        //       console.error("Error fetching app details:", error)
+        //     );
+        // }
+        // adding event listener
+        document.querySelectorAll(".view-detail-link").forEach((link) => {
+          // console.log("hey-1");
+          link.addEventListener("click", function (event) {
+            event.preventDefault();
+            const appId = this.getAttribute("data-app-id");
+            const userId = this.getAttribute("data-user-id");
+            console.log('before entering view-in-det func',userId);
+
+            viewInDetail(appId, userId);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #e9ecef;
+      }
+
+      .sidebar {
+        height: 100%; /* Full-height: remove this if you want "auto" height */
+        width: 160px; /* Set the width of the sidebar */
+        position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+        z-index: 1; /* Stay on top */
+        top: 0; /* Stay at the top */
+        left: 0;
+        background-color: #e9e7e7; /* Black */
+        overflow-x: hidden; /* Disable horizontal scroll */
+        padding-top: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 10px;
+        border-right: 1px solid #ddd;
+      }
+      .content {
+        margin-left: 150px; /* Adds space to the left of content to accommodate the sidebar */
+        padding: 20px; /* Adds padding around the content */
+        flex-grow: 1; /* Allows content area to grow and fill remaining space */
+        box-sizing: border-box; /* Ensures padding is included in width calculation */
+      }
+      .add-app {
+        margin-left: 150px; /* Adds space to the left of content to accommodate the sidebar */
+        padding: 20px; /* Adds padding around the content */
+        flex-grow: 1; /* Allows content area to grow and fill remaining space */
+        box-sizing: border-box;
+      }
+      .sidebar button {
+        margin-right: 10px;
+        padding: 10px 15px;
+        border: #007bff;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        flex-direction: column;
+      }
+      .sidebar button:hover {
+        background-color: #0056b3;
+      }
+      .app-form {
+        margin-left: 160px; /* Same as the width of the sidebar */
+        padding: 0px 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <h1>Rewardify</h1>
+      <button>Home</button>
+      <button>Logout</button>
+    </div>
+    <div class="content">
+      <h2>Welcome, Admin!</h2>
+      <h3>Please upload the App details</h3>
+    </div>
+    <div class="app-form">
+      <form method="post" id="add-app-form">
+        {% csrf_token %}
+        <input
+          type="text"
+          placeholder="Enter app name"
+          id="app_name"
+          name="app_name"
+        />
+        <input
+          type="url"
+          placeholder="Enter download link"
+          id="download_link"
+          name="download_link"
+        />
+        <input
+          type="number"
+          placeholder="Enter Points"
+          id="points"
+          name="points"
+        />
+        <button type="submit" id="add-app-button">Add App</button>
+      </form>
+    </div>
+
+    <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("hey-1");
+        const addAppButton = document.getElementById("add-app-button");
+        console.log("2");
+
+        addAppButton.addEventListener("click", function () {
+          console.log("3");
+          event.preventDefault(); //prevents the form from submitting the default way
+          const form = document.getElementById("add-app-form");
+          const formData = new FormData(form);
+          console.log("hey-2", formData);
+
+          fetch("/add_app/", {
+            method: "POST",
+            body: formData,
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"), // Including CSRF token for security
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                console.log("hey-3");
+                alert("App added successfully!");
+                form.reset(); // Clearing the form
+              } else {
+                alert("Failed to add app: " + data.message);
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Page</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #e9ecef;
+      }
+      .sidebar {
+        display: flex;
+        /* flex-direction: column; */
+        flex-grow: 1;
+        /* margin-bottom: 20px; */
+      }
+      .sidebar button {
+        margin-right: 10px;
+        padding: 10px 15px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        flex-direction: column;
+      }
+      .sidebar button:hover {
+        background-color: #0056b3;
+      }
+      .app-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+      .app-card {
+        padding: 25px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .app-card h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+      .app-card a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .app-card a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Upload your screenshot to gain points!</h3>
+    <div class="sidebar">
+      <button>Home</button>
+      <button>Profile</button>
+      <button>Points Earned</button>
+      <button>Tasks Completed</button>
+      <button>Logout</button>
+    </div>
+
+    <div class="'app-list">
+      {% for app in apps %}
+      <div class="app-card">
+        <h3>{{app.app_name}}</h3>
+        <a href="view_in_detail/" target="_blank">view in detail</a>
+
+        <!-- <a href="{{app.download_link}}" target="_blank">Download</a> -->
+      </div>
+      {%empty%}
+      <p>No apps available</p>
+      {% endfor %}
+    </div>
+  </body>
+</html>
